@@ -125,11 +125,8 @@ function mysql_pool (options) {
 
 function postgres (connString, callback) {
   var pg = require('pg');
-  var client = new pg.Client(connString);
-  client.connect(function(err) {
-    if (err) return callback(err);
-    callback(null, client);
-  });
+  
+  pg.connect(connString, callback);
 }
 
 // Allow consumers of the module to expose the api on
