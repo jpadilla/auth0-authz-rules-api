@@ -7,6 +7,7 @@ var expect = Code.expect;
 
 var expectedFields = [
     '__auth0_api',
+    'Buffer',
     'mongo',
     'mysql',
     'mysql_pool',
