@@ -62,7 +62,7 @@ function ip (ipAddress) {
 function mongo (url, callback) {
   var getDb = require('mongo-getdb');
 
-  if (!url || /^mongo\:\/\//.exec(url)){
+  if (!url || /^mongo:\/\//.exec(url)){
     throw new Error('invalid mongodb url');
   }
 
@@ -100,6 +100,7 @@ function mysql_pool (options) {
 
   var key = typeof options === 'string' ? options : JSON.stringify(options);
   if (mysql_pooles[key]) {
+    // eslint-disable-next-line no-console
     console.log('pool length: ', mysql_pooles[key]._connectionQueue.length);
     return mysql_pooles[key];
   }
@@ -125,7 +126,7 @@ function mysql_pool (options) {
 
 function postgres (connString, callback) {
   var pg = require('pg');
-  
+
   pg.connect(connString, callback);
 }
 
@@ -183,11 +184,33 @@ function extend (api) {
     }
   });
 
+  // This module used to rely on jsonwebtoken@~0.4.1. When a security
+  // issue was identified with that version, we bumped to the latest
+  // version (^7.4.1). In order to maintain backwards compatibility,
+  // we expose a shim on top of `jsonwebtoken@7.4.1`. This shim passes
+  // the `0.4.1` test suite (see: https://gist.github.com/jfromaniello/2cd4dfc0f6dd1a51e3bae01f75a23d0a).
+  var jwtMagicGlobal;
   Object.defineProperty(api, 'jwt', {
     configurable: false,
     enumerable: true,
     get: function () {
-      return require('jsonwebtoken');
+      if (!jwtMagicGlobal) {
+        const jwt = require('jsonwebtoken');
+
+        jwtMagicGlobal = {
+          sign: (payload, secret, options) => {
+            var newOptions = options;
+            if (newOptions && newOptions.expiresInMinutes) {
+              newOptions = Object.assign({ expiresIn: `${options.expiresInMinutes}m` }, newOptions);
+              delete newOptions.expiresInMinutes;
+            }
+            return jwt.sign(payload, secret, newOptions);
+          },
+          verify: jwt.verify
+        };
+      }
+
+      return jwtMagicGlobal;
     }
   });
 
@@ -271,7 +294,16 @@ function extend (api) {
     configurable: false,
     enumerable: true,
     get: function () {
-      return require('crypto');
+      var crypto = require('crypto');
+
+      function createCipheriv(alg, key, iv, options) {
+        if (typeof key === 'string') {
+          key = new Buffer(key, 'binary');
+        }
+        return crypto.createCipheriv.apply(crypto, [alg, key, iv, options]);
+      }
+
+      return Object.assign(Object.create(crypto), { createCipheriv });
     }
   });
 
@@ -376,4 +408,4 @@ function extend (api) {
       return require('./lib/errors/UnauthorizedError');
     }
   });
-};
+}
