@@ -200,7 +200,7 @@ function extend (api) {
         jwtMagicGlobal = {
           sign: (payload, secret, options) => {
             var newOptions = options;
-            if (newOptions.expiresInMinutes) {
+            if (newOptions && newOptions.expiresInMinutes) {
               newOptions = Object.assign({ expiresIn: `${options.expiresInMinutes}m` }, newOptions);
               delete newOptions.expiresInMinutes;
             }
