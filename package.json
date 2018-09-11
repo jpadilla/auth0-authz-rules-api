@@ -11,7 +11,7 @@
     "auth0": "^2.0.0-alpha.5",
     "azure-storage": "~2.2.1",
     "bcrypt": "~0.8.3",
-    "couchbase": "~2.3.5",
+    "couchbase": "~2.5.1",
     "easy-pbkdf2": "0.0.2",
     "jsonwebtoken": "~7.4.1",
     "knex": "~0.13.0",
