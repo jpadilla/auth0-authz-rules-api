@@ -198,6 +198,7 @@ function extend (api) {
         const jwt = require('jsonwebtoken');
 
         jwtMagicGlobal = {
+          decode: jwt.decode,
           sign: (payload, secret, options) => {
             var newOptions = options;
             if (newOptions && newOptions.expiresInMinutes) {
